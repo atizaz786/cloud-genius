@@ -4,7 +4,7 @@ import { useState } from "react";
 import axios from "axios";
 import * as z from "zod";
 import { Heading } from "@/components/heading";
-import { MessageSquare, Music } from "lucide-react";
+import { Music } from "lucide-react";
 import { useForm } from "react-hook-form";
 
 import { formSchema } from "./constants";
@@ -13,15 +13,13 @@ import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import {
-  ChatCompletionMessageParam,
-  CreateChatCompletionRequestMessage,
-} from "openai/resources/index.mjs";
-import ChatCompletionRequestMessage from "openai";
+
 import { Empty } from "@/components/empty";
 import { Loader } from "@/components/loader";
+import { useProModal } from "@/hooks/use-pro-modal";
 
 const MusicPage = () => {
+  const proModal = useProModal();
   const router = useRouter();
   const [music, setMusic] = useState<string>();
 
@@ -39,15 +37,18 @@ const MusicPage = () => {
       setMusic(undefined);
 
       const response = await axios.post("/api/music", values);
-      console.log(response)
+      console.log(response);
 
       setMusic(response.data.audio);
       form.reset();
 
       form.reset();
     } catch (error: any) {
-      //TODO: Open Pro Model
-      console.error(error);
+      if (error?.response?.status === 403) {
+        proModal.onOpen();
+      } else {
+        console.error(error);
+      }
     } finally {
       router.refresh();
     }
@@ -98,9 +99,7 @@ const MusicPage = () => {
               <Loader />
             </div>
           )}
-          {!music && !isLoading && (
-            <Empty label="No Music Generated." />
-          )}
+          {!music && !isLoading && <Empty label="No Music Generated." />}
           {music && (
             <audio controls className="w-full mt-8">
               <source src={music} type="audio/mpeg" />

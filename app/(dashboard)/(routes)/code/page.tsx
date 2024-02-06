@@ -4,7 +4,7 @@ import { useState } from "react";
 import axios from "axios";
 import * as z from "zod";
 import { Heading } from "@/components/heading";
-import {  Code, MessageSquare } from "lucide-react";
+import { Code } from "lucide-react";
 import { useForm } from "react-hook-form";
 import ReactMarkDown from "react-markdown";
 
@@ -14,24 +14,25 @@ import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import { ChatCompletionMessageParam, CreateChatCompletionRequestMessage } from "openai/resources/index.mjs";
-import ChatCompletionRequestMessage from "openai";
+
 import { Empty } from "@/components/empty";
 import { cn } from "@/lib/utils";
 import { UserAvatar } from "@/components/user-avatar";
 import { BotAvatar } from "@/components/bot-avatar";
 import { Loader } from "@/components/loader";
+import { useProModal } from "@/hooks/use-pro-modal";
 
 const CodePage = () => {
+  const proModal = useProModal();
   const router = useRouter();
   const [messages, setMessages] = useState<any[]>([]);
 
-console.log()
+  console.log();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      prompt: ""
-    }
+      prompt: "",
+    },
   });
 
   const isLoading = form.formState.isSubmitting;
@@ -40,15 +41,18 @@ console.log()
     try {
       const userMessage: any = { role: "user", content: values.prompt };
       const newMessages = [...messages, userMessage];
-      
-      const response = await axios.post('/api/code', { messages: newMessages });
+
+      const response = await axios.post("/api/code", { messages: newMessages });
       setMessages((current) => [...current, userMessage, response.data]);
-      console.log("messages",messages)
-      
+      console.log("messages", messages);
+
       form.reset();
     } catch (error: any) {
-        //TODO: Open Pro Model
-      console.error(error);
+      if (error?.response?.status === 403) {
+        proModal.onOpen();
+      } else {
+        console.error(error);
+      }
     } finally {
       router.refresh();
     }
@@ -94,38 +98,39 @@ console.log()
           </Form>
         </div>
         <div className="space-y-4 mt-4">
-        {isLoading && (
+          {isLoading && (
             <div className="p-8 rounded-lg w-full flex items-center justify-center bg-muted">
               <Loader />
             </div>
           )}
           {messages.length === 0 && !isLoading && (
-           <Empty label="No conversation started." />
+            <Empty label="No conversation started." />
           )}
           <div className="flex flex-col-reverse gap-y-4">
-           
             {messages.map((message) => (
-              <div 
-                key={message.content} 
+              <div
+                key={message.content}
                 className={cn(
                   "p-8 w-full flex items-start gap-x-8 rounded-lg",
-                  message.role === "user" ? "bg-white border border-black/10" : "bg-muted",
+                  message.role === "user"
+                    ? "bg-white border border-black/10"
+                    : "bg-muted"
                 )}
               >
                 {message.role === "user" ? <UserAvatar /> : <BotAvatar />}
-                <ReactMarkDown components={{
-                  pre: ({node, ...props}) => (
-                    <div className="overflow-auto w-full my-2 bg-black/10 p-2 rounded-lg">
-                      <pre {...props} />
-                    </div>
-                  ),
-                  code: ({node, ...props}) => (
-                    <code className="bg-black/10 rounded-lg p-1" {...props} />
-                  )
-                }}
-                className="text-sm overflow-hidden leading-7"
+                <ReactMarkDown
+                  components={{
+                    pre: ({ node, ...props }) => (
+                      <div className="overflow-auto w-full my-2 bg-black/10 p-2 rounded-lg">
+                        <pre {...props} />
+                      </div>
+                    ),
+                    code: ({ node, ...props }) => (
+                      <code className="bg-black/10 rounded-lg p-1" {...props} />
+                    ),
+                  }}
+                  className="text-sm overflow-hidden leading-7"
                 >
-         
                   {message.content}
                 </ReactMarkDown>
               </div>
