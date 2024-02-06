@@ -35,26 +35,40 @@ export const increaseApiLimit = async () => {
   }
 };
 
-
 export const checkApiLimit = async () => {
-    const { userId } = auth();
-    
-    if (!userId) {
-        return false;
-    }
-    
-    const userApiLimit = await prismadb.userApiLimit.findUnique({
-        where: {
-        userId,
-        },
-    });
+  const { userId } = auth();
 
-    if(!userApiLimit || userApiLimit.count < FREE_MAX_COUNTS){
-        return true;
-    }
-    else{
-        return false;
-    }
-    
-   
+  if (!userId) {
+    return false;
+  }
+
+  const userApiLimit = await prismadb.userApiLimit.findUnique({
+    where: {
+      userId,
+    },
+  });
+
+  if (!userApiLimit || userApiLimit.count < FREE_MAX_COUNTS) {
+    return true;
+  } else {
+    return false;
+  }
+};
+
+export const getApiLimit = async () => {
+  const { userId } = auth();
+
+  if (!userId) {
+    return 0;
+  }
+
+  const userApiLimit = await prismadb.userApiLimit.findUnique({
+    where: {
+      userId,
+    },
+  });
+
+  return userApiLimit?.count || 0;
 }
+
+
