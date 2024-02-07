@@ -24,6 +24,7 @@ import { UserAvatar } from "@/components/user-avatar";
 import { BotAvatar } from "@/components/bot-avatar";
 import { Loader } from "@/components/loader";
 import { useProModal } from "@/hooks/use-pro-modal";
+import toast from "react-hot-toast";
 
 const ConversationPage = () => {
   const proModal = useProModal();
@@ -56,7 +57,7 @@ const ConversationPage = () => {
       if (error?.response?.status === 403) {
         proModal.onOpen();
       } else {
-        console.error(error);
+        toast.error("An error occurred. Please try again later.");
       }
     } finally {
       router.refresh();
