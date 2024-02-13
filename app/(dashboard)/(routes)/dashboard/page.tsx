@@ -59,7 +59,7 @@ export default function DashboardPage() {
           Explore the power of AI
         </h2>
         <p className="text-muted-foregroound font-light text-sm md:text-lg text-center">
-          Chat with Genius to generate music, code, and more.
+          Chat with LumenAI to generate music, code, and more.
         </p>
       </div>
       <div className="px-4 md:px-20 lg:px-32 space-y-4">
